@@ -11,6 +11,9 @@ class BaseMongo(object):
     def get_collection(self):
         return self.coll
 
+    @classmethod
+    def load(cls, collection, id):
+        return cls.__from_mongo__(collection, id)
 
     collection = property(get_collection)
 
@@ -29,9 +32,25 @@ class Player(BaseMongo):
         self.artistic = artistic
 
 
+    @classmethod
+    def __from_mongo__(cls, collection, email):
+        """
+        Returns a single Player object identified by email"""
+        #query object
+        query = {'e': email}
+        obj = collection.find_one(query)
+        if obj is not None:
+            return Player(collection, obj['n'], email, obj['fbid'], obj['a'])
+        return None
+
     def __to_mongo__(self):
+        """
+        Parses Player instance into a dictonary so it can be inserted into mongo collection"""
         d = {'n': self.name, 'e': self.email, 'fbid': self.fbid, 'a': self.artistic}
         return d
+
+#    def load(collection, email):
+#        return Player.__from_mongo__(collection, email)
 
     def save(self):
         self.collection.save(self.mobject)
